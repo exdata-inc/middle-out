@@ -1,4 +1,33 @@
-# Middle-out Compression for Time-series Data
+# Python module for Middle-out Compression for Time-series Data
+
+Forked from [schizofreny/middle-out](https://github.com/schizofreny/middle-out)
+
+## Setup
+
+Tested with:
+- g++ (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+- Python 3.12.4
+
+```bash
+sudo apt install g++
+python -m pip install -U pip setuptools wheel
+pip install "pybind11[global]"
+```
+
+## Build
+
+```bash
+CC=g++ python setup.py build_ext --inplace
+```
+
+## Run
+
+```bash
+python test.py
+```
+
+
+# Original README: Middle-out Compression for Time-series Data
 
 We all know, how the Middle-out compression works at the HBO show [1], but how do we actually apply this to the time-series data?
 Take a look at the following schema. There is an input vector of a data. This vector is divided to Middle-out segments. For simplicity, in the image there are only four of a segments, but compression actually uses eight. This is because the AVX-512 vector instructions can process up to 8 doubles at once. If we used a single precision numbers, then we’d have 16 Middle-out segments and proceed 16 elements at a time.

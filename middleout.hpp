@@ -30,6 +30,14 @@ void decompress(std::vector<char>& input, size_t itemsCount, std::vector<int64_t
 
 void decompress(std::vector<char>& input, size_t itemsCount, std::vector<double>& data);
 
+std::vector<char> compressInt(std::vector<int64_t>& data);
+
+std::vector<char> compressDouble(std::vector<double>& data);
+
+std::vector<int64_t> decompressInt(std::vector<char>& input, size_t itemsCount);
+
+std::vector<double> decompressDouble(std::vector<char>& input, size_t itemsCount);
+
 size_t maxCompressedSize(size_t count);
 
 }  // end namespace middleout
