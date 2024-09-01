@@ -11,8 +11,6 @@ See LICENSE.md file
 #include <stdint.h>
 #include <stdlib.h>
 #include <memory>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 #include "middleout.hpp"
 
 #ifdef USE_AVX512
@@ -49,32 +47,56 @@ void decompress(std::vector<char>& input, size_t inputElements, std::vector<doub
 	return ALG_CLASS<double>::decompress(input, inputElements, data);
 }
 
-std::vector<char> compressInt(std::vector<int64_t>& data) {
-	std::vector<char> output(middleout::maxCompressedSize(data.size()));
-	size_t size = ALG_CLASS<int64_t>::compress(data, output);
-	output.resize(size);
-	output.shrink_to_fit();	
-	return output;
+rust::Vec<uint8_t> compressInt(const rust::Vec<int64_t>& data) {
+    std::vector<int64_t> data_vec(data.begin(), data.end());
+    std::unique_ptr<std::vector<char>> compressed_data_ptr = ALG_CLASS<int64_t>::compressSimple(data_vec);
+    std::vector<char> compressed_data = std::move(*compressed_data_ptr); // moveで所有権を移動
+
+    rust::Vec<uint8_t> result;
+    result.reserve(compressed_data.size()); // Rustのベクタに容量を確保
+    for (char byte : compressed_data) {
+        result.push_back(static_cast<uint8_t>(byte)); // 要素を一つずつ追加
+    }
+    return result;
 }
 
-std::vector<char> compressDouble(std::vector<double>& data) {
-	std::vector<char> output(middleout::maxCompressedSize(data.size()));
-	size_t size = ALG_CLASS<double>::compress(data, output);
-	output.resize(size);
-	output.shrink_to_fit();	
-	return output;
+rust::Vec<uint8_t> compressDouble(const rust::Vec<double>& data) {
+    std::vector<int64_t> data_vec(data.begin(), data.end());
+    std::unique_ptr<std::vector<char>> compressed_data_ptr = ALG_CLASS<int64_t>::compressSimple(data_vec);
+    std::vector<char> compressed_data = std::move(*compressed_data_ptr); // moveで所有権を移動
+
+    rust::Vec<uint8_t> result;
+    result.reserve(compressed_data.size()); // Rustのベクタに容量を確保
+    for (char byte : compressed_data) {
+        result.push_back(static_cast<uint8_t>(byte)); // 要素を一つずつ追加
+    }
+    return result;
 }
 
-std::vector<int64_t> decompressInt(std::vector<char>& input, size_t inputElements) {
-	std::vector<int64_t> data(inputElements);
-	ALG_CLASS<int64_t>::decompress(input, inputElements, data);
-	return data;
+rust::Vec<int64_t> decompressInt(const rust::Vec<uint8_t>& input, size_t inputElements) {
+    std::vector<char> input_vec(input.begin(), input.end());
+    std::vector<int64_t> decompressed_data(inputElements);
+    ALG_CLASS<int64_t>::decompress(input_vec, inputElements, decompressed_data);
+
+    rust::Vec<int64_t> result;
+    result.reserve(decompressed_data.size());
+    for (int64_t value : decompressed_data) {
+        result.push_back(value);
+    }
+    return result;
 }
 
-std::vector<double> decompressDouble(std::vector<char>& input, size_t inputElements) {
-	std::vector<double> data(inputElements);
-	ALG_CLASS<double>::decompress(input, inputElements, data);
-	return data;
+rust::Vec<double> decompressDouble(const rust::Vec<uint8_t>& input, size_t inputElements) {
+    std::vector<char> input_vec(input.begin(), input.end());
+    std::vector<double> decompressed_data(inputElements);
+    ALG_CLASS<double>::decompress(input_vec, inputElements, decompressed_data);
+
+    rust::Vec<double> result;
+    result.reserve(decompressed_data.size());
+    for (double value : decompressed_data) {
+        result.push_back(value);
+    }
+    return result;
 }
 
 size_t maxCompressedSize(size_t count) {
@@ -82,18 +104,3 @@ size_t maxCompressedSize(size_t count) {
 }
 
 }  // end namespace middleout
-
-namespace py = pybind11;
-
-PYBIND11_MODULE(middleout, m) {
-    m.doc() = "pybind11 middleout plugin"; // optional module docstring
-
-    m.def("compressInt", &middleout::compressInt);
-    m.def("compressDouble", &middleout::compressDouble);
-
-    m.def("decompressInt", &middleout::decompressInt);
-    m.def("decompressDouble", &middleout::decompressDouble);
-
-    m.def("maxCompressedSize", &middleout::maxCompressedSize,
-          "Calculate max compressed size for given number of elements");
-}
