@@ -61,8 +61,8 @@ rust::Vec<uint8_t> compressInt(const rust::Vec<int64_t>& data) {
 }
 
 rust::Vec<uint8_t> compressDouble(const rust::Vec<double>& data) {
-    std::vector<int64_t> data_vec(data.begin(), data.end());
-    std::unique_ptr<std::vector<char>> compressed_data_ptr = ALG_CLASS<int64_t>::compressSimple(data_vec);
+    std::vector<double> data_vec(data.begin(), data.end());
+    std::unique_ptr<std::vector<char>> compressed_data_ptr = ALG_CLASS<double>::compressSimple(data_vec);
     std::vector<char> compressed_data = std::move(*compressed_data_ptr); // moveで所有権を移動
 
     rust::Vec<uint8_t> result;
