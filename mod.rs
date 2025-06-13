@@ -49,3 +49,25 @@ pub fn middleout_decompress_double(input: &[u8], input_elements: usize) -> Vec<f
     alg.decompress(input, input_elements, &mut decompressed_data);
     decompressed_data
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn int_roundtrip() {
+        let data: Vec<i64> = (0..8).collect();
+        let comp = middleout_compress_int(&data);
+        let dec = middleout_decompress_int(&comp, data.len());
+        assert_eq!(dec, data);
+    }
+
+    #[test]
+    fn double_roundtrip() {
+        let data: Vec<f64> = (0..8).map(|v| v as f64 * 0.5).collect();
+        let comp = middleout_compress_double(&data);
+        let dec = middleout_decompress_double(&comp, data.len());
+        assert_eq!(dec, data);
+    }
+}
