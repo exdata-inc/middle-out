@@ -257,10 +257,13 @@ fn decompress_value<T: Copy>(
 
     // 現在のブロックのシフトビット数を算出
     let shift_bits = (((compressed_offsets >> *offsets_shift) & 0b111) * 8) as u32;
-    // input から unaligned な u64 値を読み出す
+    // input から max_length バイト分だけ読み出す（8バイトではなく実際のサイズ）
     let to_xor = {
-        let bytes = &input[*input_index..*input_index + 8];
-        u64::from_le_bytes(bytes.try_into().unwrap())
+        // max_length バイト分を読み込み、足りない部分は 0 で埋める
+        let mut bytes = [0u8; 8];
+        let read_len = (max_length as usize).min(input.len() - *input_index);
+        bytes[..read_len].copy_from_slice(&input[*input_index..*input_index + read_len]);
+        u64::from_le_bytes(bytes)
     } & clear_top_bit_mask;
     let result = prev ^ (to_xor << shift_bits);
 
